@@ -35,6 +35,9 @@ trait ManagesTasks
     /** "Y-m-d\TH:i", the format of <input type="datetime-local"> */
     public ?string $editRemindAt = null;
 
+    /** When the task being edited was added, ready to display. */
+    public ?string $editAddedAt = null;
+
     /**
      * Re-render when the bell reports that reminders just rang,
      * so the task rows stop showing them as pending.
@@ -62,6 +65,7 @@ trait ManagesTasks
         $this->editPriority = $task->priority->value;
         $this->editProjectId = $task->project_id ? (string) $task->project_id : null;
         $this->editRemindAt = $task->remind_at?->format('Y-m-d\TH:i');
+        $this->editAddedAt = $task->created_at?->format('l j F Y \a\t H:i');
 
         Flux::modal('edit-task')->show();
     }

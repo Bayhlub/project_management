@@ -216,6 +216,34 @@ class TaskDashboardTest extends TestCase
             ->assertDontSee('In the project');
     }
 
+    public function test_tasks_show_when_they_were_added_and_when_they_are_due(): void
+    {
+        Carbon::setTestNow('2026-11-16 09:15:00');
+        $older = Task::factory()->for($this->user)->dueOn('2026-11-18')->create(['title' => 'Older task']);
+        Carbon::setTestNow('2026-11-17 10:00:00');
+
+        Volt::test('dashboard')
+            ->set('title', 'Fresh task')
+            ->set('dueDate', '2026-11-19')
+            ->call('addTask')
+            ->assertSeeInOrder(['Older task', 'Due Tomorrow', 'Added Yesterday'])
+            ->assertSeeInOrder(['Fresh task', 'Due Thu 19 Nov', 'Added Today']);
+
+        Volt::test('dashboard')
+            ->call('edit', $older->id)
+            ->assertSet('editAddedAt', 'Monday 16 November 2026 at 09:15')
+            ->assertSee('Added Monday 16 November 2026 at 09:15');
+    }
+
+    public function test_finished_tasks_show_when_they_were_done(): void
+    {
+        Task::factory()->for($this->user)->completed()->create(['title' => 'Finished thing']);
+
+        Volt::test('dashboard')
+            ->set('showCompleted', true)
+            ->assertSeeInOrder(['Finished thing', 'Done Today']);
+    }
+
     public function test_week_strip_counts_tasks_and_filters_by_day(): void
     {
         $make = fn (string $title, string $date) => Task::factory()->for($this->user)->dueOn($date)->create(['title' => $title]);

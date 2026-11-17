@@ -1,9 +1,14 @@
-@props(['projects'])
+@props(['projects', 'added' => null])
 
 {{-- Needs a Livewire component that uses App\Livewire\Concerns\ManagesTasks. --}}
 <flux:modal name="edit-task" class="w-full md:w-[32rem]">
     <form wire:submit="saveEdit" class="space-y-5">
-        <flux:heading size="lg">Edit task</flux:heading>
+        <div>
+            <flux:heading size="lg">Edit task</flux:heading>
+            @if ($added)
+                <flux:text class="mt-1">Added {{ $added }}</flux:text>
+            @endif
+        </div>
 
         <flux:input wire:model="editTitle" label="Title" />
         <flux:textarea wire:model="editNotes" label="Notes" rows="3" />

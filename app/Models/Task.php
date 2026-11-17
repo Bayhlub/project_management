@@ -147,6 +147,14 @@ class Task extends Model
         return self::dayLabel($this->remind_at, $now).' '.$this->remind_at->format('H:i');
     }
 
+    /**
+     * When the task was added, e.g. "Today", "Yesterday" or "Mon 10 Nov".
+     */
+    public function addedLabel(Carbon $now): string
+    {
+        return self::dayLabel($this->created_at ?? $now, $now);
+    }
+
     public function hasPendingReminder(): bool
     {
         return $this->remind_at !== null && $this->reminded_at === null && ! $this->isCompleted();

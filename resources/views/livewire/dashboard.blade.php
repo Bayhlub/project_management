@@ -289,7 +289,9 @@ new #[Title('To-do')] class extends Component {
                 />
             </label>
             <div class="flex flex-wrap items-center gap-2 border-t border-zinc-200 bg-zinc-50/70 px-3 py-2 lg:border-t-0 lg:border-l lg:bg-transparent dark:border-zinc-800 dark:bg-zinc-900/50">
-                <div class="w-36"><flux:input type="date" size="sm" wire:model="dueDate" aria-label="Due date" /></div>
+                <label class="flex items-center gap-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">Due
+                    <span class="block w-36"><flux:input type="date" size="sm" wire:model="dueDate" aria-label="Due date" /></span>
+                </label>
                 <div class="w-28">
                     <flux:select size="sm" wire:model="priority" aria-label="Priority">
                         @foreach (array_reverse($priorities) as $p)
@@ -393,5 +395,5 @@ new #[Title('To-do')] class extends Component {
         </section>
     @endif
 
-    <x-task-edit-modal :projects="$this->projectOptions" />
+    <x-task-edit-modal :projects="$this->projectOptions" :added="$editAddedAt" />
 </div>

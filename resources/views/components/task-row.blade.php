@@ -38,42 +38,51 @@
         @endif
 
         @php($dueLabel = $task->dueLabel($now))
-        @if ($dueLabel || $task->hasPendingReminder() || ($showProject && $task->project) || ($task->priority !== \App\Enums\Priority::Normal && ! $done))
-            <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-                @if ($dueLabel)
-                    <span @class([
-                        'inline-flex items-center gap-1',
-                        'font-medium text-overdue' => $overdue && ! $done,
-                        'text-zinc-500 dark:text-zinc-400' => ! ($overdue && ! $done),
-                    ])>
-                        <flux:icon name="calendar" variant="micro" class="opacity-70" />
-                        {{ $dueLabel }}
-                    </span>
-                @endif
+        <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+            @if ($dueLabel)
+                <span @class([
+                    'inline-flex items-center gap-1',
+                    'font-medium text-overdue' => $overdue && ! $done,
+                    'text-zinc-600 dark:text-zinc-300' => ! ($overdue && ! $done),
+                ])>
+                    <flux:icon name="calendar" variant="micro" class="opacity-70" />
+                    Due {{ $dueLabel }}
+                </span>
+            @endif
 
-                @if ($task->hasPendingReminder())
-                    <span class="inline-flex items-center gap-1 text-reminder" title="Reminder">
-                        <flux:icon name="bell" variant="micro" />
-                        {{ $task->reminderLabel($now) }}
-                    </span>
-                @endif
+            @if ($task->hasPendingReminder())
+                <span class="inline-flex items-center gap-1 text-reminder" title="Reminder">
+                    <flux:icon name="bell" variant="micro" />
+                    {{ $task->reminderLabel($now) }}
+                </span>
+            @endif
 
-                @if ($showProject && $task->project)
-                    <a href="{{ route('projects.show', $task->project) }}" wire:navigate class="relative z-10 inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 hover:underline dark:text-zinc-300 dark:hover:text-white">
-                        <span class="size-2 rounded-full {{ $task->project->color->dotClass() }}" aria-hidden="true"></span>
-                        {{ $task->project->name }}
-                    </a>
-                @endif
+            @if ($showProject && $task->project)
+                <a href="{{ route('projects.show', $task->project) }}" wire:navigate class="relative z-10 inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 hover:underline dark:text-zinc-300 dark:hover:text-white">
+                    <span class="size-2 rounded-full {{ $task->project->color->dotClass() }}" aria-hidden="true"></span>
+                    {{ $task->project->name }}
+                </a>
+            @endif
 
-                @if (! $done && $task->priority === \App\Enums\Priority::High)
-                    <span class="inline-flex items-center gap-1 font-medium text-overdue">
-                        <flux:icon name="flag" variant="micro" /> High
-                    </span>
-                @elseif (! $done && $task->priority === \App\Enums\Priority::Low)
-                    <span class="text-zinc-400">Low priority</span>
+            @if (! $done && $task->priority === \App\Enums\Priority::High)
+                <span class="inline-flex items-center gap-1 font-medium text-overdue">
+                    <flux:icon name="flag" variant="micro" /> High
+                </span>
+            @elseif (! $done && $task->priority === \App\Enums\Priority::Low)
+                <span class="text-zinc-400">Low priority</span>
+            @endif
+
+            {{-- When it was added (or finished), always shown last and quiet. --}}
+            <span class="inline-flex items-center gap-1 text-zinc-400 dark:text-zinc-500" title="Added {{ $task->created_at?->format('l j F Y, H:i') }}">
+                @if ($done)
+                    <flux:icon name="check" variant="micro" />
+                    Done {{ \App\Models\Task::dayLabel($task->completed_at, $now) }}
+                @else
+                    <flux:icon name="plus-circle" variant="micro" />
+                    Added {{ $task->addedLabel($now) }}
                 @endif
-            </div>
-        @endif
+            </span>
+        </div>
     </div>
 
     {{-- Actions: always visible on touch screens, on hover or focus elsewhere. --}}
