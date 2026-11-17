@@ -4,11 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Number;
 
 class ProjectFile extends Model
 {
+    use SoftDeletes;
+
     /**
      * project_id and path are set explicitly by the upload code.
      *
@@ -18,7 +21,7 @@ class ProjectFile extends Model
 
     protected static function booted(): void
     {
-        static::deleting(function (ProjectFile $file) {
+        static::forceDeleting(function (ProjectFile $file) {
             Storage::disk('local')->delete($file->path);
         });
     }

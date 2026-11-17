@@ -18,6 +18,8 @@ use Livewire\Attributes\On;
  */
 trait ManagesTasks
 {
+    use OffersUndo;
+
     public ?int $editingId = null;
 
     public string $editTitle = '';
@@ -160,9 +162,15 @@ trait ManagesTasks
         $this->reset('editingId');
     }
 
+    /**
+     * Move a task to the trash (it can be restored from the Trash page).
+     */
     public function delete(int $id): void
     {
-        $this->findTask($id)->delete();
+        $task = $this->findTask($id);
+        $task->delete();
+
+        $this->offerUndo('task', $task->id, $task->title);
     }
 
     /**
@@ -190,6 +198,8 @@ trait ManagesTasks
      */
     protected function ownProjectRule(): Exists
     {
-        return Rule::exists('projects', 'id')->where('user_id', auth()->id());
+        return Rule::exists('projects', 'id')
+            ->where('user_id', auth()->id())
+            ->whereNull('deleted_at');
     }
 }

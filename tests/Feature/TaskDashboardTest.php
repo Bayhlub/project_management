@@ -157,13 +157,19 @@ class TaskDashboardTest extends TestCase
             ->assertHasErrors(['editDueDate']);
     }
 
-    public function test_a_task_can_be_deleted(): void
+    public function test_deleting_a_task_moves_it_to_the_trash_with_undo(): void
     {
-        $task = Task::factory()->for($this->user)->create();
+        $task = Task::factory()->for($this->user)->create(['title' => 'Old idea']);
 
-        Volt::test('dashboard')->call('delete', $task->id);
+        $component = Volt::test('dashboard')
+            ->call('delete', $task->id)
+            ->assertSee('“Old idea” moved to trash.')
+            ->assertDontSee('Old idea</p>', false);
 
-        $this->assertModelMissing($task);
+        $this->assertSoftDeleted($task);
+
+        $component->call('undoTrash')->assertSet('undoLabel', null);
+        $this->assertNotSoftDeleted($task);
     }
 
     public function test_a_task_can_be_added_to_a_project(): void

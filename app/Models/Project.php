@@ -10,12 +10,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
 class Project extends Model
 {
     /** @use HasFactory<ProjectFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * user_id and archived_at are set explicitly, never mass assigned.
@@ -47,8 +48,9 @@ class Project extends Model
 
     protected static function booted(): void
     {
-        // Database rows cascade, but uploaded files have to be removed from disk by hand.
-        static::deleting(function (Project $project) {
+        // Moving to the trash keeps everything. Deleting forever cascades the database
+        // rows, but uploaded files have to be removed from disk by hand.
+        static::forceDeleting(function (Project $project) {
             Storage::disk('local')->deleteDirectory($project->filesDirectory());
         });
     }

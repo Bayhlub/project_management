@@ -12,6 +12,8 @@
         ->limit(12)
         ->get();
 
+    $trashCount = \App\Support\Trash::count();
+
     $routeProject = request()->routeIs('projects.show') ? request()->route('project') : null;
     $currentProjectId = $routeProject instanceof \App\Models\Project ? $routeProject->id : (int) $routeProject;
 @endphp
@@ -63,6 +65,10 @@
             @endif
 
             <flux:spacer />
+
+            <flux:navlist variant="outline">
+                <flux:navlist.item icon="trash" :href="route('trash')" :current="request()->routeIs('trash')" :badge="$trashCount ?: null" wire:navigate>Trash</flux:navlist.item>
+            </flux:navlist>
 
             <!-- Desktop User Menu -->
             <flux:dropdown position="bottom" align="start">

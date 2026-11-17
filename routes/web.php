@@ -17,6 +17,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('projects/{project}/files/{file}', ProjectFileDownloadController::class)
         ->scopeBindings()
         ->name('projects.files.download');
+    Volt::route('trash', 'trash')->name('trash');
 });
 
 Route::middleware(['auth'])->group(function () {

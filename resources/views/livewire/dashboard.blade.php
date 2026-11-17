@@ -396,4 +396,5 @@ new #[Title('To-do')] class extends Component {
     @endif
 
     <x-task-edit-modal :projects="$this->projectOptions" :added="$editAddedAt" />
+    <x-undo-toast :label="$undoLabel" :key="$undoType.$undoId" />
 </div>

@@ -74,7 +74,9 @@ new class extends Component {
     {
         $this->authorize('delete', $this->project);
 
+        // To the trash: the projects list offers "Undo".
         $this->project->delete();
+        session()->flash('trashed_project', ['id' => $this->project->id, 'name' => $this->project->name]);
 
         $this->redirectRoute('projects.index', navigate: true);
     }
@@ -137,7 +139,9 @@ new class extends Component {
     {
         $this->authorize('update', $this->project);
 
-        $this->project->notes()->findOrFail($id)->delete();
+        $note = $this->project->notes()->findOrFail($id);
+        $note->delete();
+        $this->offerUndo('note', $note->id, 'Note');
     }
 
     // ---- Links ------------------------------------------------------------
@@ -164,7 +168,9 @@ new class extends Component {
     {
         $this->authorize('update', $this->project);
 
-        $this->project->links()->findOrFail($id)->delete();
+        $link = $this->project->links()->findOrFail($id);
+        $link->delete();
+        $this->offerUndo('link', $link->id, $link->displayLabel());
     }
 
     // ---- Files ------------------------------------------------------------
@@ -199,7 +205,9 @@ new class extends Component {
     {
         $this->authorize('update', $this->project);
 
-        $this->project->files()->findOrFail($id)->delete();
+        $file = $this->project->files()->findOrFail($id);
+        $file->delete();
+        $this->offerUndo('file', $file->id, $file->original_name);
     }
 
     public function with(): array
@@ -256,8 +264,8 @@ new class extends Component {
                             icon="trash"
                             variant="danger"
                             wire:click="deleteProject"
-                            wire:confirm="Delete this project with all its notes, links and files? Its tasks stay on your to-do list without a project. This cannot be undone."
-                        >Delete project</flux:menu.item>
+                            wire:confirm="Move this project to the trash? Its tasks stay on your to-do list, and you can restore the project from Trash."
+                        >Move to trash</flux:menu.item>
                     </flux:menu>
                 </flux:dropdown>
             </div>
@@ -372,7 +380,7 @@ new class extends Component {
                                     <time datetime="{{ $note->created_at->toIso8601String() }}" class="text-xs font-medium text-zinc-500 dark:text-zinc-400">
                                         {{ $note->created_at->format('D j M Y') }} at {{ $note->created_at->format('H:i') }}
                                     </time>
-                                    <flux:button size="xs" variant="ghost" icon="trash" wire:click="deleteNote({{ $note->id }})" wire:confirm="Delete this note?" aria-label="Delete note" class="sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100" />
+                                    <flux:button size="xs" variant="ghost" icon="trash" wire:click="deleteNote({{ $note->id }})" aria-label="Move note to trash" class="sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100" />
                                 </div>
                                 <p class="mt-1 max-w-prose whitespace-pre-line break-words text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-200">{{ $note->body }}</p>
                             </li>
@@ -400,7 +408,7 @@ new class extends Component {
                                         <span class="block truncate text-xs text-zinc-500 dark:text-zinc-400">{{ $link->host() }}</span>
                                     @endif
                                 </a>
-                                <flux:button size="xs" variant="ghost" icon="x-mark" wire:click="deleteLink({{ $link->id }})" wire:confirm="Remove this link?" aria-label="Remove link" class="sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100" />
+                                <flux:button size="xs" variant="ghost" icon="x-mark" wire:click="deleteLink({{ $link->id }})" aria-label="Move link to trash" class="sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100" />
                             </li>
                         @endforeach
                     </ul>
@@ -432,7 +440,7 @@ new class extends Component {
                                     <span class="block truncate text-sm font-medium text-zinc-900 hover:underline dark:text-white">{{ $file->original_name }}</span>
                                     <span class="block text-xs text-zinc-500 dark:text-zinc-400">{{ $file->humanSize() }}, added {{ $file->created_at->format('j M Y') }}</span>
                                 </a>
-                                <flux:button size="xs" variant="ghost" icon="trash" wire:click="deleteFile({{ $file->id }})" wire:confirm="Delete this file? This cannot be undone." aria-label="Delete file" class="sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100" />
+                                <flux:button size="xs" variant="ghost" icon="trash" wire:click="deleteFile({{ $file->id }})" aria-label="Move file to trash" class="sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100" />
                             </li>
                         @endforeach
                     </ul>
@@ -453,4 +461,5 @@ new class extends Component {
 
     <x-project-form-modal heading="Edit project" />
     <x-task-edit-modal :projects="$this->projectOptions" :added="$editAddedAt" />
+    <x-undo-toast :label="$undoLabel" :key="$undoType.$undoId" />
 </div>

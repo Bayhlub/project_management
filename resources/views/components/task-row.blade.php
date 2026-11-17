@@ -88,6 +88,6 @@
     {{-- Actions: always visible on touch screens, on hover or focus elsewhere. --}}
     <div class="flex shrink-0 items-center gap-0.5 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:focus-within:opacity-100">
         <flux:button size="sm" variant="ghost" icon="pencil-square" wire:click="edit({{ $task->id }})" aria-label="Edit task" />
-        <flux:button size="sm" variant="ghost" icon="trash" wire:click="delete({{ $task->id }})" wire:confirm="Delete this task?" aria-label="Delete task" />
+        <flux:button size="sm" variant="ghost" icon="trash" wire:click="delete({{ $task->id }})" aria-label="Move task to trash" />
     </div>
 </li>

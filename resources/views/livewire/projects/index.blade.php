@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Concerns\OffersUndo;
 use App\Livewire\Forms\ProjectForm;
 use Flux\Flux;
 use Illuminate\Support\Collection;
@@ -9,10 +10,20 @@ use Livewire\Attributes\Url;
 use Livewire\Volt\Component;
 
 new #[Title('Projects')] class extends Component {
+    use OffersUndo;
+
     public ProjectForm $form;
 
     #[Url(as: 'show', except: 'all')]
     public string $show = 'all';
+
+    public function mount(): void
+    {
+        // Arriving here right after moving a project to the trash.
+        if ($trashed = session('trashed_project')) {
+            $this->offerUndo('project', (int) $trashed['id'], $trashed['name']);
+        }
+    }
 
     public function create(): void
     {
@@ -184,4 +195,5 @@ new #[Title('Projects')] class extends Component {
     @endif
 
     <x-project-form-modal heading="New project" />
+    <x-undo-toast :label="$undoLabel" :key="$undoType.$undoId" />
 </div>

@@ -138,25 +138,30 @@ class ProjectsTest extends TestCase
         $this->assertNull($project->fresh()->archived_at);
     }
 
-    public function test_deleting_a_project_keeps_its_tasks_and_removes_its_files(): void
+    public function test_deleting_a_project_moves_it_to_the_trash_and_keeps_everything(): void
     {
         Storage::fake('local');
-        $project = $this->project();
+        $project = $this->project(['name' => 'Old site']);
         $task = Task::factory()->for($this->user)->create(['project_id' => $project->id]);
 
         Volt::test('projects.show', ['project' => $project])
             ->set('upload', UploadedFile::fake()->create('brief.pdf', 100, 'application/pdf'));
         $path = $project->files()->sole()->path;
-        Storage::disk('local')->assertExists($path);
 
         Volt::test('projects.show', ['project' => $project])
             ->call('deleteProject')
             ->assertRedirect(route('projects.index'));
 
-        $this->assertModelMissing($project);
-        $this->assertSame(0, ProjectFile::count());
-        Storage::disk('local')->assertMissing($path);
-        $this->assertNull($task->fresh()->project_id);
+        $this->assertSoftDeleted($project);
+        Storage::disk('local')->assertExists($path);
+        $this->assertSame($project->id, $task->fresh()->project_id, 'Task keeps its project for when it is restored');
+        $this->get("/projects/{$project->id}")->assertNotFound();
+        $this->get('/projects')->assertDontSee('href="'.route('projects.show', $project).'"', false);
+
+        // The projects list offers to undo it.
+        session()->flash('trashed_project', ['id' => $project->id, 'name' => 'Old site']);
+        Volt::test('projects.index')->assertSee('“Old site” moved to trash.')->call('undoTrash');
+        $this->assertNotSoftDeleted($project);
     }
 
     // ---- Tasks on the project page ----------------------------------------
@@ -190,7 +195,7 @@ class ProjectsTest extends TestCase
         $note = $project->notes()->sole();
 
         $component->call('deleteNote', $note->id);
-        $this->assertModelMissing($note);
+        $this->assertSoftDeleted($note);
     }
 
     public function test_an_empty_note_is_rejected(): void
@@ -218,7 +223,7 @@ class ProjectsTest extends TestCase
         $link = $project->links()->sole();
 
         $component->call('deleteLink', $link->id);
-        $this->assertModelMissing($link);
+        $this->assertSoftDeleted($link);
     }
 
     public function test_only_web_links_are_accepted(): void
@@ -253,8 +258,8 @@ class ProjectsTest extends TestCase
             ->assertDownload('Quote v2.pdf');
 
         $component->call('deleteFile', $file->id);
-        $this->assertModelMissing($file);
-        Storage::disk('local')->assertMissing($file->path);
+        $this->assertSoftDeleted($file);
+        Storage::disk('local')->assertExists($file->path); // kept until deleted forever
     }
 
     public function test_files_over_10_mb_are_rejected(): void
