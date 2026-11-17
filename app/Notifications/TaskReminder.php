@@ -11,9 +11,7 @@ use Illuminate\Notifications\Notification;
  */
 class TaskReminder extends Notification
 {
-    public function __construct(public Task $task)
-    {
-    }
+    public function __construct(public Task $task) {}
 
     /**
      * @return array<int, string>

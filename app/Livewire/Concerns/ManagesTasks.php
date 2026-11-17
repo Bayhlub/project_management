@@ -40,9 +40,7 @@ trait ManagesTasks
      * so the task rows stop showing them as pending.
      */
     #[On('reminders-arrived')]
-    public function refreshAfterReminders(): void
-    {
-    }
+    public function refreshAfterReminders(): void {}
 
     public function toggle(int $id): void
     {

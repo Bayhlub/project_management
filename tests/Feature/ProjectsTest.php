@@ -6,6 +6,7 @@ use App\Enums\ProjectColor;
 use App\Enums\ProjectStatus;
 use App\Models\Project;
 use App\Models\ProjectFile;
+use App\Models\ProjectLink;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -227,7 +228,7 @@ class ProjectsTest extends TestCase
             ->call('addLink')
             ->assertHasErrors(['linkUrl']);
 
-        $this->assertSame(0, \App\Models\ProjectLink::count());
+        $this->assertSame(0, ProjectLink::count());
     }
 
     // ---- Files ------------------------------------------------------------
