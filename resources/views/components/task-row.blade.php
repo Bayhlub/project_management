@@ -1,54 +1,83 @@
 @props(['task', 'now', 'overdue' => false, 'showProject' => true])
 
-@php($done = $task->isCompleted())
+@php
+    $done = $task->isCompleted();
 
-<li {{ $attributes->class('group flex items-start gap-3 px-4 py-3') }}>
-    <input
-        type="checkbox"
-        @checked($done)
-        wire:click="toggle({{ $task->id }})"
-        aria-label="{{ $done ? 'Mark as not done' : 'Mark as done' }}: {{ $task->title }}"
-        class="mt-1 size-4 shrink-0 cursor-pointer accent-emerald-600"
-    />
+    // The checkbox ring carries the priority: strong for high, faint for low.
+    $ring = match ($task->priority) {
+        \App\Enums\Priority::High => 'border-overdue',
+        \App\Enums\Priority::Low => 'border-zinc-300 dark:border-zinc-600',
+        default => 'border-zinc-400 dark:border-zinc-500',
+    };
+@endphp
+
+<li {{ $attributes->class('group relative flex items-start gap-3 px-4 py-3 transition-colors hover:bg-zinc-50/70 dark:hover:bg-zinc-900/60') }}>
+    <span class="relative mt-0.5 flex size-5 shrink-0 items-center justify-center">
+        <input
+            type="checkbox"
+            @checked($done)
+            wire:click="toggle({{ $task->id }})"
+            aria-label="{{ $done ? 'Mark as not done' : 'Mark as done' }}: {{ $task->title }}"
+            class="peer size-5 cursor-pointer appearance-none rounded-full border-2 {{ $ring }} bg-white transition-colors checked:border-accent checked:bg-accent hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent dark:bg-zinc-950"
+        />
+        <svg viewBox="0 0 16 16" class="pointer-events-none absolute size-3 text-accent-foreground opacity-0 peer-checked:opacity-100" aria-hidden="true">
+            <path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+    </span>
 
     <div class="min-w-0 flex-1">
-        <p class="break-words font-medium {{ $done ? 'text-zinc-400 line-through dark:text-zinc-500' : 'text-zinc-900 dark:text-white' }}">
+        <p class="break-words text-[15px] leading-snug {{ $done ? 'text-zinc-400 line-through dark:text-zinc-500' : 'text-zinc-900 dark:text-zinc-50' }}">
             {{ $task->title }}
+            @if ($task->priority === \App\Enums\Priority::High && ! $done)
+                <span class="sr-only">(high priority)</span>
+            @endif
         </p>
 
         @if ($task->notes)
-            <p class="mt-0.5 line-clamp-2 whitespace-pre-line text-sm text-zinc-500 dark:text-zinc-400">{{ $task->notes }}</p>
+            <p class="mt-0.5 line-clamp-1 text-sm text-zinc-500 dark:text-zinc-400">{{ $task->notes }}</p>
         @endif
 
-        <div class="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
-            @if ($label = $task->dueLabel($now))
-                <span class="inline-flex items-center gap-1 {{ $overdue && ! $done ? 'font-medium text-red-600 dark:text-red-400' : 'text-zinc-500 dark:text-zinc-400' }}">
-                    <flux:icon name="calendar" variant="micro" />
-                    {{ $label }}
-                </span>
-            @endif
+        @php($dueLabel = $task->dueLabel($now))
+        @if ($dueLabel || $task->hasPendingReminder() || ($showProject && $task->project) || ($task->priority !== \App\Enums\Priority::Normal && ! $done))
+            <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                @if ($dueLabel)
+                    <span @class([
+                        'inline-flex items-center gap-1',
+                        'font-medium text-overdue' => $overdue && ! $done,
+                        'text-zinc-500 dark:text-zinc-400' => ! ($overdue && ! $done),
+                    ])>
+                        <flux:icon name="calendar" variant="micro" class="opacity-70" />
+                        {{ $dueLabel }}
+                    </span>
+                @endif
 
-            @if ($task->hasPendingReminder())
-                <span class="inline-flex items-center gap-1 text-violet-600 dark:text-violet-400" title="Reminder">
-                    <flux:icon name="bell-alert" variant="micro" />
-                    {{ $task->reminderLabel($now) }}
-                </span>
-            @endif
+                @if ($task->hasPendingReminder())
+                    <span class="inline-flex items-center gap-1 text-reminder" title="Reminder">
+                        <flux:icon name="bell" variant="micro" />
+                        {{ $task->reminderLabel($now) }}
+                    </span>
+                @endif
 
-            @if ($showProject && $task->project)
-                <a href="{{ route('projects.show', $task->project) }}" wire:navigate class="inline-flex items-center gap-1.5 text-zinc-600 hover:underline dark:text-zinc-300">
-                    <span class="size-2 rounded-full {{ $task->project->color->dotClass() }}" aria-hidden="true"></span>
-                    {{ $task->project->name }}
-                </a>
-            @endif
+                @if ($showProject && $task->project)
+                    <a href="{{ route('projects.show', $task->project) }}" wire:navigate class="relative z-10 inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 hover:underline dark:text-zinc-300 dark:hover:text-white">
+                        <span class="size-2 rounded-full {{ $task->project->color->dotClass() }}" aria-hidden="true"></span>
+                        {{ $task->project->name }}
+                    </a>
+                @endif
 
-            @if ($task->priority !== \App\Enums\Priority::Normal)
-                <flux:badge size="sm" :color="$task->priority->color()">{{ $task->priority->label() }}</flux:badge>
-            @endif
-        </div>
+                @if (! $done && $task->priority === \App\Enums\Priority::High)
+                    <span class="inline-flex items-center gap-1 font-medium text-overdue">
+                        <flux:icon name="flag" variant="micro" /> High
+                    </span>
+                @elseif (! $done && $task->priority === \App\Enums\Priority::Low)
+                    <span class="text-zinc-400">Low priority</span>
+                @endif
+            </div>
+        @endif
     </div>
 
-    <div class="flex shrink-0 items-center gap-1">
+    {{-- Actions: always visible on touch screens, on hover or focus elsewhere. --}}
+    <div class="flex shrink-0 items-center gap-0.5 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:focus-within:opacity-100">
         <flux:button size="sm" variant="ghost" icon="pencil-square" wire:click="edit({{ $task->id }})" aria-label="Edit task" />
         <flux:button size="sm" variant="ghost" icon="trash" wire:click="delete({{ $task->id }})" wire:confirm="Delete this task?" aria-label="Delete task" />
     </div>

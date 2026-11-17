@@ -9,31 +9,57 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * Design tokens: a calm "work ledger".
+ * - IBM Plex Sans for everything; Plex Sans Condensed for date numerals and counts.
+ * - Greys are tinted slightly toward sage so the whole UI sits on one cool base.
+ * - Evergreen is the single action colour. Red only means overdue, ochre only means reminder.
+ */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif, 'Segoe UI Emoji';
+    --font-condensed: 'IBM Plex Sans Condensed', 'IBM Plex Sans', ui-sans-serif, sans-serif;
 
-    --color-zinc-50: #fafafa;
-    --color-zinc-100: #f5f5f5;
-    --color-zinc-200: #e5e5e5;
-    --color-zinc-300: #d4d4d4;
-    --color-zinc-400: #a3a3a3;
-    --color-zinc-500: #737373;
-    --color-zinc-600: #525252;
-    --color-zinc-700: #404040;
-    --color-zinc-800: #262626;
-    --color-zinc-900: #171717;
-    --color-zinc-950: #0a0a0a;
+    --color-zinc-50: #f5f7f6;
+    --color-zinc-100: #edf0ee;
+    --color-zinc-200: #dce1de;
+    --color-zinc-300: #c3cac6;
+    --color-zinc-400: #8e9893;
+    --color-zinc-500: #67716c;
+    --color-zinc-600: #4d5651;
+    --color-zinc-700: #39413d;
+    --color-zinc-800: #252b28;
+    --color-zinc-900: #171c1a;
+    --color-zinc-950: #0e1211;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
+    --color-evergreen-50: #eaf4ef;
+    --color-evergreen-100: #d3e8dd;
+    --color-evergreen-300: #8cc4ac;
+    --color-evergreen-400: #4fb38c;
+    --color-evergreen-500: #2e8466;
+    --color-evergreen-600: #1f6b52;
+    --color-evergreen-700: #1a5c46;
+    --color-evergreen-900: #0f3427;
+
+    --color-overdue: #c0353a;
+    --color-overdue-soft: #fbeceb;
+    --color-reminder: #a86a0c;
+    --color-reminder-soft: #fbf2e2;
+
+    --color-accent: var(--color-evergreen-600);
+    --color-accent-content: var(--color-evergreen-700);
     --color-accent-foreground: var(--color-white);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: var(--color-evergreen-400);
+        --color-accent-content: var(--color-evergreen-300);
+        --color-accent-foreground: var(--color-zinc-950);
+
+        --color-overdue: #f07a7d;
+        --color-overdue-soft: rgb(192 53 58 / 0.16);
+        --color-reminder: #e3a94b;
+        --color-reminder-soft: rgb(168 106 12 / 0.18);
     }
 }
 
@@ -44,7 +70,18 @@
     ::before,
     ::backdrop,
     ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
+        border-color: var(--color-zinc-200, currentColor);
+    }
+
+    body {
+        font-feature-settings: 'kern' 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
     }
 }
 

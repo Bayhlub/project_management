@@ -110,7 +110,7 @@ new class extends Component {
         <flux:button variant="ghost" size="sm" class="relative" :aria-label="$bellLabel">
             <flux:icon name="bell" class="size-5" />
             @if ($unreadCount)
-                <span class="absolute -right-0.5 -top-0.5 flex min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-4 text-white">
+                <span class="absolute -right-0.5 -top-0.5 flex min-w-4 items-center justify-center rounded-full bg-overdue px-1 text-[10px] font-semibold leading-4 text-white">
                     {{ $unreadCount > 9 ? '9+' : $unreadCount }}
                 </span>
             @endif
@@ -125,7 +125,7 @@ new class extends Component {
             </div>
 
             <template x-if="permission === 'default'">
-                <button type="button" x-on:click="enableAlerts()" class="mx-2 mb-1 flex w-[calc(100%-1rem)] items-center gap-2 rounded-md bg-violet-50 px-2 py-1.5 text-left text-xs text-violet-700 hover:bg-violet-100 dark:bg-violet-500/10 dark:text-violet-300">
+                <button type="button" x-on:click="enableAlerts()" class="mx-2 mb-1 flex w-[calc(100%-1rem)] items-center gap-2 rounded-md bg-evergreen-50 px-2 py-1.5 text-left text-xs text-evergreen-700 hover:bg-evergreen-100 dark:bg-evergreen-900/40 dark:text-evergreen-300">
                     <flux:icon name="computer-desktop" variant="micro" /> Turn on desktop alerts
                 </button>
             </template>
@@ -138,7 +138,7 @@ new class extends Component {
             @forelse ($recent as $notification)
                 <flux:menu.item wire:click="open('{{ $notification->id }}')" wire:key="n-{{ $notification->id }}" class="!h-auto !items-start py-2">
                     <div class="flex min-w-0 flex-1 items-start gap-2">
-                        <span @class(['mt-1.5 size-2 shrink-0 rounded-full', 'bg-red-500' => ! $notification->read_at, 'bg-transparent' => $notification->read_at])></span>
+                        <span @class(['mt-1.5 size-2 shrink-0 rounded-full', 'bg-reminder' => ! $notification->read_at, 'bg-transparent' => $notification->read_at])></span>
                         <div class="min-w-0 flex-1">
                             <p @class(['truncate text-sm', 'font-semibold' => ! $notification->read_at])>{{ $notification->data['title'] ?? 'Reminder' }}</p>
                             <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ $notification->data['body'] ?? '' }}</p>
@@ -155,8 +155,8 @@ new class extends Component {
     {{-- Pop-up alerts --}}
     <div wire:ignore class="pointer-events-none fixed bottom-4 right-4 z-50 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2" aria-live="assertive">
         <template x-for="toast in toasts" :key="toast.id">
-            <div class="pointer-events-auto flex items-start gap-3 rounded-xl border border-violet-200 bg-white p-4 shadow-lg dark:border-violet-500/40 dark:bg-zinc-800" role="alert">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden="true"><path fill-rule="evenodd" d="M5.25 9a6.75 6.75 0 0 1 13.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 0 1-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 1 1-7.48 0 24.585 24.585 0 0 1-4.831-1.244.75.75 0 0 1-.298-1.205A8.217 8.217 0 0 0 5.25 9.75V9Zm4.502 8.9a2.25 2.25 0 1 0 4.496 0 25.057 25.057 0 0 1-4.496 0Z" clip-rule="evenodd" /></svg>
+            <div class="pointer-events-auto flex items-start gap-3 rounded-xl border border-zinc-200 border-l-4 border-l-reminder bg-white p-4 shadow-lg dark:border-zinc-700 dark:border-l-reminder dark:bg-zinc-900" role="alert">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 shrink-0 text-reminder" aria-hidden="true"><path fill-rule="evenodd" d="M5.25 9a6.75 6.75 0 0 1 13.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 0 1-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 1 1-7.48 0 24.585 24.585 0 0 1-4.831-1.244.75.75 0 0 1-.298-1.205A8.217 8.217 0 0 0 5.25 9.75V9Zm4.502 8.9a2.25 2.25 0 1 0 4.496 0 25.057 25.057 0 0 1-4.496 0Z" clip-rule="evenodd" /></svg>
                 <div class="min-w-0 flex-1">
                     <p class="text-sm font-semibold text-zinc-900 dark:text-white" x-text="toast.title"></p>
                     <p class="text-xs text-zinc-500 dark:text-zinc-400" x-text="toast.body"></p>

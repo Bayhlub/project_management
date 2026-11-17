@@ -216,6 +216,36 @@ class TaskDashboardTest extends TestCase
             ->assertDontSee('In the project');
     }
 
+    public function test_week_strip_counts_tasks_and_filters_by_day(): void
+    {
+        $make = fn (string $title, string $date) => Task::factory()->for($this->user)->dueOn($date)->create(['title' => $title]);
+        $make('Late thing', '2026-11-16');
+        $make('Today thing', '2026-11-17');
+        $make('Tomorrow thing', '2026-11-18');
+        $make('Friday thing', '2026-11-20');
+        $make('Far thing', '2026-12-30');
+
+        $component = Volt::test('dashboard');
+
+        $counts = collect($component->instance()->strip)->pluck('count', 'key')->all();
+        $this->assertSame(1, $counts['overdue']);
+        $this->assertSame(1, $counts['today']);
+        $this->assertSame(1, $counts['2026-11-18']);
+        $this->assertSame(1, $counts['2026-11-20']);
+        $this->assertSame(1, $counts['later']);
+
+        $component->call('pickDay', '2026-11-18')
+            ->assertSet('day', '2026-11-18')
+            ->assertSee('Tomorrow thing')
+            ->assertDontSee('Friday thing')
+            ->assertDontSee('Late thing');
+
+        $component->call('pickDay', 'later')->assertSee('Far thing')->assertDontSee('Tomorrow thing');
+
+        // Clicking the active day again shows everything.
+        $component->call('pickDay', 'later')->assertSet('day', '')->assertSee('Late thing')->assertSee('Far thing');
+    }
+
     public function test_other_users_tasks_are_not_shown(): void
     {
         Task::factory()->create(['title' => 'Someone else task']);
